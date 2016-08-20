@@ -1,0 +1,10 @@
+{
+  "base_url": "http://127.0.0.1:15000/bot/",
+  "token": "117896710:AAFnYzaKFGUamfAgzL3ueecdIUkffaNWOtY",
+  "api": "http://127.0.0.1:17000/",
+  "database": {
+    "mongo": {
+      "url": "mongodb://localhost/savevideobot-telegram"
+    }
+  }
+}

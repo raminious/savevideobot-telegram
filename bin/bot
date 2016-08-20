@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+const program = require('commander');
+const notifier = require('../app');
+const bot = require('../app');
+
+// options
+program
+  .option('-H, --host <host>', 'specify the host [0.0.0.0]', '0.0.0.0')
+  .option('-b, --backlog <size>', 'specify the backlog size [511]', '511')
+  .parse(process.argv);
+
+const app = bot();
+
+app.listen(15000, program.host, ~~program.backlog, function () {
+  console.log('[ + ] ‌Bot Listening on %s:%s', program.host, '15000');
+});
