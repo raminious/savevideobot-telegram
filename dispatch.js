@@ -2,11 +2,13 @@
 
 const router = require('koa-router')()
 const bodyParser = require('koa-bodyparser')
+const request = require('superagent')
 const config = require('./config.json')
 const co = require('co')
 const telegram = require('./lib/resources/telegram')(config.token)
 const User = require('./lib/database/user')
 const _ = require('underscore')
+
 
 const commands = [
   {
@@ -40,6 +42,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
     }
     catch(e) {
       console.log(e)
+      log('error', e.message, e.info)
     }
   }))
 
@@ -86,6 +89,24 @@ router.post('/dispatch', bodyParser(), function* (next) {
     return yield require('./lib/bot-command/' + command.lib)(identity, message)
 
   }.bind(this)
+
+  // logger
+  const log = function (level, message, e) {
+
+    let log = config.log
+
+    request
+      .post(log.url)
+      .auth(log.auth.username, log.auth.password, { type: 'auto' })
+      .send({
+        level,
+        short_message: message,
+        from: 'telegram'
+      })
+      .send(e)
+      .end((err, res) => {})
+  }
+
 
   this.status = 200
   this.body = 'ok'
