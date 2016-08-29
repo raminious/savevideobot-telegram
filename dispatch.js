@@ -41,7 +41,12 @@ router.post('/dispatch', bodyParser(), function* (next) {
       yield dispatch()
     }
     catch(e) {
-      console.log(e)
+
+      // check application fatal errors
+      if (e instanceof TypeError)
+        return log('fatal', 'telegram_fatal', { description: e.message, stack: e.stack })
+
+      // errors throwed by app
       log('error', e.message, e.info)
     }
   }))
