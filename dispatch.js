@@ -43,7 +43,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
     catch(e) {
 
       // check application fatal errors
-      if (e instanceof TypeError)
+      if (e instanceof TypeError || e instanceof ReferenceError)
         return log('fatal', 'telegram_fatal', { description: e.message, stack: e.stack })
 
       // errors throwed by app
@@ -72,7 +72,6 @@ router.post('/dispatch', bodyParser(), function* (next) {
     // dont process unknown commands
     if (message == null)
       return false;
-
 
     const user = {
       id: req[type].from.id,
