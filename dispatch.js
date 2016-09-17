@@ -9,10 +9,9 @@ const telegram = require('./lib/resources/telegram')(config.token)
 const User = require('./lib/database/user')
 const _ = require('underscore')
 
-
 const commands = [
   {
-    lib: 'request',
+    lib: 'explore',
     query: /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi
   },
   {
@@ -42,6 +41,9 @@ router.post('/dispatch', bodyParser(), function* (next) {
     }
     catch(e) {
 
+      if (process.env.NODE_ENV !== 'production')
+        console.log(e, e.stack)
+
       // check application fatal errors
       if (e instanceof TypeError || e instanceof ReferenceError)
         return log('fatal', 'telegram_fatal', { description: e.message, stack: e.stack })
@@ -66,12 +68,12 @@ router.post('/dispatch', bodyParser(), function* (next) {
 
     if (req.callback_query != null) {
       type = 'callback_query'
-      message = req.callback_query.data.trim();
+      message = req.callback_query.data.trim()
     }
 
     // dont process unknown commands
     if (message == null)
-      return false;
+      return false
 
     const user = {
       id: req[type].from.id,
@@ -97,7 +99,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
   // logger
   const log = function (level, message, e) {
 
-    let log = config.log
+    const log = config.log
 
     request
       .post(log.url)
@@ -113,7 +115,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
 
 
   this.status = 200
-  this.body = 'ok'
+  this.body = {}
 })
 
 
