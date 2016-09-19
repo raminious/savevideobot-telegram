@@ -5,7 +5,7 @@ const bodyParser = require('koa-bodyparser')
 const request = require('superagent')
 const config = require('./config.json')
 const co = require('co')
-const telegram = require('./lib/resources/telegram')(config.token)
+const telegram = require('./lib/resources/telegram')
 const User = require('./lib/database/user')
 const _ = require('underscore')
 
@@ -27,12 +27,20 @@ const commands = [
     query: '^/help$'
   },
   {
+    lib: 'connect',
+    query: '^/(dis)?connect$',
+  },
+  {
+    lib: 'connect',
+    query: /^\d+:[\w&.\-]*$/
+  },
+  {
     lib: 'main',
     query: '.*'
   }
 ]
 
-router.post('/dispatch', bodyParser(), function* (next) {
+router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
   // run dispatcher when response is sent to user
   this.res.once('finish', co.wrap(function* () {
@@ -57,6 +65,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
   const dispatch = function* (){
 
     const req = this.request.body
+    const botId = this.params.botId
 
     // get user message
     let message, type = null
@@ -86,6 +95,20 @@ router.post('/dispatch', bodyParser(), function* (next) {
     * create new identity from api server if user is new
     */
     const identity = yield User.getIdentity(user)
+
+    /*
+    * get bot token to interact with
+    */
+    if (botId != null) {
+
+      if (botId != identity._id) {
+        return yield telegram.sendMessage(identity,
+          '<b>You are not authorized to use this bot</b>\nOnly bot owner can use this bot', 'HTML')
+      }
+
+      identity.botToken = identity.bot.token
+      identity.botName = identity.bot.username
+    }
 
     // find api depend on user request
     const command = _.detect(commands, (item) => {
