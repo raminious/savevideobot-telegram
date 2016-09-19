@@ -49,7 +49,7 @@ router.post('/dispatch', bodyParser(), function* (next) {
         return log('fatal', 'telegram_fatal', { description: e.message, stack: e.stack })
 
       // errors throwed by app
-      log('error', e.message, e.info)
+      log('error', e.message, e.info || {})
     }
   }))
 
@@ -112,7 +112,6 @@ router.post('/dispatch', bodyParser(), function* (next) {
       .send(e)
       .end((err, res) => {})
   }
-
 
   this.status = 200
   this.body = {}
