@@ -101,10 +101,8 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     */
     if (botId != null) {
 
-      if (botId != identity._id) {
-        return yield telegram.sendMessage(identity,
-          '<b>You are not authorized to use this bot</b>\nOnly bot owner can use this bot', 'HTML')
-      }
+      if (identity._id != botId)
+        return false
 
       identity.botToken = identity.bot.token
       identity.botName = identity.bot.username
