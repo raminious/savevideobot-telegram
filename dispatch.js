@@ -72,7 +72,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
     if (req.message != null) {
       type = 'message'
-      message = req.message.text.trim()
+      message = req.message.text != null? req.message.text.trim(): null
     }
 
     if (req.callback_query != null) {
