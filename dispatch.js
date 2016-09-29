@@ -79,7 +79,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
   /**
   * entry point of parsing user request
-  */ 
+  */
   const dispatch = function* (){
 
     const req = this.request.body
@@ -111,7 +111,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     // check if message is a retry request
     if (/^\/retry\d+/.test(message)) {
       let session_id = message.match(/\d+/)[0]
-      let retry = yield Session.findAndTerminate(id)
+      let retry = yield Session.findAndTerminate(session_id)
 
       if (retry != null)
         message = retry.message
