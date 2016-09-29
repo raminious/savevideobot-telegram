@@ -25,13 +25,11 @@ const libs = {
 const commands = [
   {
     lib: 'explore',
-    query: /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi,
-    ttl: config.session.ttl
+    query: /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi
   },
   {
     lib: 'download',
-    query: '^/[a-zA-Z0-9]{25,27}',
-    ttl: config.session.ttl
+    query: '^/[a-zA-Z0-9]{25,27}'
   },
   {
     lib: 'random',
@@ -79,23 +77,21 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
   /**
   * entry point of parsing user request
-  */ 
+  */
   const dispatch = function* (){
 
     const req = this.request.body
     const botId = this.params.botId // is equivalent to owner user _id
 
     // get user message
-    let id, message, type = null
+    let message, type = null
 
     if (req.message != null) {
       type = 'message'
-      id = req.update_id.toString() + req.message.message_id.toString()
       message = req.message.text
     }
     else if (req.callback_query != null) {
       type = 'callback_query'
-      id = req.update_id.toString() + req.callback_query.message.message_id.toString()
       message = req.callback_query.data
     }
     else
@@ -107,15 +103,6 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
     // trim message
     message = message.trim()
-
-    // check if message is a retry request
-    if (/^\/retry\d+/.test(message)) {
-      let session_id = message.match(/\d+/)[0]
-      let retry = yield Session.findAndTerminate(id)
-
-      if (retry != null)
-        message = retry.message
-    }
 
     // create user identity object
     const user = {
@@ -148,7 +135,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     })
 
     // store user request as session
-    const session = yield Session.store(id, identity, message, command.ttl)
+    const session = yield Session.create(identity)
 
     return yield libs[command.lib](session, message)
 
