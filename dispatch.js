@@ -86,16 +86,18 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     const botId = this.params.botId // is equivalent to owner user _id
 
     // get user message
-    let id, message, type = null
+    let chat_id, message_id, message, type = null
 
     if (req.message != null) {
       type = 'message'
-      id = req.update_id.toString() + req.message.message_id.toString()
+      message_id = req.update_id.toString() + req.message.message_id.toString()
+      chat_id = req.message.chat.id
       message = req.message.text
     }
     else if (req.callback_query != null) {
       type = 'callback_query'
-      id = req.update_id.toString() + req.callback_query.message.message_id.toString()
+      message_id = req.update_id.toString() + req.callback_query.message.message_id.toString()
+      chat_id = req.callback_query.message.chat.id
       message = req.callback_query.data
     }
     else
@@ -130,10 +132,16 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     */
     const identity = yield User.getIdentity(user)
 
+    // if message is sent from group, response back to group instead user
+    if (chat_id != identity.id) {
+      identity.id = chat_id
+    }
+
     /*
     * get bot token if client using own bot
+    * send from groups not supproted (identity.id == chat_id)
     */
-    if (botId != null) {
+    if (botId != null && identity.id == chat_id) {
 
       // only bot owner can use the bot
       if (identity._id != botId)
@@ -148,7 +156,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     })
 
     // store user request as session
-    const session = yield Session.store(id, identity, message, command.ttl)
+    const session = yield Session.store(message_id, identity, message, command.ttl)
 
     return yield libs[command.lib](session, message)
 
