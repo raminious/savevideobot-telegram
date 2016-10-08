@@ -19,7 +19,8 @@ const libs = {
   'download'  : require(libsPath + 'download'),
   'random'    : require(libsPath + 'random'),
   'main'      : require(libsPath + 'main'),
-  'connect'   : require(libsPath + 'connect')
+  'connect'   : require(libsPath + 'connect'),
+  'ads'       : require(libsPath + 'ads')
 }
 
 const commands = [
@@ -48,6 +49,10 @@ const commands = [
   {
     lib: 'connect',
     query: /^\d+:[\w&.\-]*$/
+  },
+  {
+    lib: 'ads',
+    query: '^/ads$',
   },
   {
     lib: 'main',
