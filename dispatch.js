@@ -15,12 +15,13 @@ const libsPath = './lib/bot-command/'
 
 // list of libraries
 const libs = {
-  'explore'   : require(libsPath + 'explore'),
-  'download'  : require(libsPath + 'download'),
-  'random'    : require(libsPath + 'random'),
-  'main'      : require(libsPath + 'main'),
-  'connect'   : require(libsPath + 'connect'),
-  'ads'       : require(libsPath + 'ads')
+  'explore'       : require(libsPath + 'explore'),
+  'download'      : require(libsPath + 'download'),
+  'random'        : require(libsPath + 'random'),
+  'main'          : require(libsPath + 'main'),
+  'connect'       : require(libsPath + 'connect'),
+  'localization'  : require(libsPath + 'settings/localization'),
+  'ads'           : require(libsPath + 'ads')
 }
 
 const commands = [
@@ -53,6 +54,10 @@ const commands = [
   {
     lib: 'ads',
     query: '^/ads$',
+  },
+  {
+    lib: 'localization',
+    query: /^localization_[0-5]{1}$/
   },
   {
     lib: 'main',
@@ -138,9 +143,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     const identity = yield User.getIdentity(user)
 
     // if message is sent from group, response back to group instead user
-    if (chat_id != identity.id) {
-      identity.id = chat_id
-    }
+    identity.chat_id = chat_id != identity.id ? chat_id : identity.id
 
     /*
     * get bot token if client using own bot
@@ -162,6 +165,9 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
     // store user request as session
     const session = yield Session.store(message_id, identity, message, command.ttl)
+
+    if (identity.localization == null && command.lib == 'explore')
+      return yield User.requestLanguage(session)
 
     return yield libs[command.lib](session, message)
 
