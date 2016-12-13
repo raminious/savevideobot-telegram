@@ -57,7 +57,7 @@ const commands = [
   },
   {
     lib: 'localization',
-    query: /^localization_[0-5]{1}$/
+    query: /^setlocal:[0-5]{1}-session:[0-9]*$/
   },
   {
     lib: 'main',
@@ -165,6 +165,7 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
     // store user request as session
     const session = yield Session.store(message_id, identity, message, command.ttl)
+    // console.log('mid: ', message_id)
 
     if (identity.localization == null && command.lib == 'explore')
       return yield User.requestLanguage(session)
