@@ -165,7 +165,6 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
 
     // store user request as session
     const session = yield Session.store(message_id, identity, message, command.ttl)
-    // console.log('mid: ', message_id)
 
     if (identity.localization == null && command.lib == 'explore')
       return yield User.requestLanguage(session)
