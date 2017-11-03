@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-
 const program = require('commander');
-const bot = require('../');
+const bot = require('../')
 
 // options
 program
@@ -10,8 +9,8 @@ program
   .option('-p, --port <port>', 'specify port number [15000]', '15000')
   .parse(process.argv);
 
-const app = bot();
+const app = bot()
 
 app.listen(program.port, program.host, ~~program.backlog, function () {
-  console.log('[ + ] ‌Bot Listening on %s:%s', program.host, program.port);
-});
+  console.log('[ + ] ‌Bot Listening on %s:%s', program.host, program.port)
+})

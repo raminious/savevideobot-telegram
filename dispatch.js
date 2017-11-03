@@ -1,12 +1,10 @@
-'use strict'
-
+const Koa = require('koa')
 const router = require('koa-router')()
 const bodyParser = require('koa-bodyparser')
 const config = require('./config.json')
-const co = require('co')
-const telegram = require('./lib/resources/telegram')
-const User = require('./lib/database/user')
-const Session = require('./lib/database/session')
+const telegram = require('./lib/api/telegram')
+const User = require('./lib/api/user')
+const Session = require('./lib/services/session')
 const _ = require('underscore')
 const log = require('./log')
 
@@ -17,10 +15,8 @@ const libsPath = './lib/bot-command/'
 const libs = {
   'explore'       : require(libsPath + 'explore'),
   'download'      : require(libsPath + 'download'),
-  'random'        : require(libsPath + 'random'),
   'main'          : require(libsPath + 'main'),
   'connect'       : require(libsPath + 'connect'),
-  'localization'  : require(libsPath + 'settings/localization'),
   'ads'           : require(libsPath + 'ads')
 }
 
@@ -34,10 +30,6 @@ const commands = [
     lib: 'download',
     query: '^/[a-zA-Z0-9]{25,27}',
     ttl: config.session.ttl
-  },
-  {
-    lib: 'random',
-    query: '^/random$'
   },
   {
     lib: 'main',
@@ -56,41 +48,41 @@ const commands = [
     query: '^/ads$',
   },
   {
-    lib: 'localization',
-    query: /^setlocal:[0-5]{1}-session:[0-9]*$/
-  },
-  {
     lib: 'main',
     query: '.*'
   }
 ]
 
-router.post('/dispatch/:botId?', bodyParser(), function* (next) {
+router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
 
   // run dispatcher once received telegram server request
-  this.res.once('finish', co.wrap(function* () {
+  ctx.res.once('finish', async function () {
     try {
       // parse user request
-      yield dispatch()
+      await dispatch()
     }
     catch(e) {
-
-      if (process.env.NODE_ENV !== 'production')
+      if (process.env.NODE_ENV !== 'production') {
         console.log(e, e.stack)
+      }
 
       // check application fatal errors
-      if (e instanceof TypeError || e instanceof ReferenceError)
-        log('fatal', 'telegram_fatal', { description: e.message, stack: e.stack })
+      if (e instanceof TypeError || e instanceof ReferenceError) {
+        log('fatal', 'telegram_fatal', {
+          description: e.message,
+          stack: e.stack
+        })
+      }
     }
-  }))
+  })
 
-  this.status = 200
-  this.body = {}
+  ctx.status = 200
+  ctx.body = {}
 
   /**
   * entry point of parsing user request
   */
-  const dispatch = function* (){
+  const dispatch = async function (){
 
     const req = this.request.body
     const botId = this.params.botId // is equivalent to owner user _id
@@ -110,12 +102,14 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
       chat_id = req.callback_query.message.chat.id
       message = req.callback_query.data
     }
-    else
+    else {
       return false
+    }
 
     // avoid to process unknown commands
-    if (message == null)
+    if (message == null) {
       return false
+    }
 
     // trim message
     message = message.trim()
@@ -123,10 +117,11 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     // check if message is a retry request
     if (/^\/retry\d+/.test(message)) {
       let session_id = message.match(/\d+/)[0]
-      let retry = yield Session.findAndTerminate(session_id)
+      let retry = await Session.findAndTerminate(session_id)
 
-      if (retry != null)
+      if (retry != null) {
         message = retry.message
+      }
     }
 
     // create user identity object
@@ -140,20 +135,25 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     * get user identity
     * auto signup is enabled
     */
-    const identity = yield User.getIdentity(user)
+    const identity = await User.getIdentity(user)
 
     // if message is sent from group, response back to group instead user
-    identity.chat_id = chat_id != identity.id ? chat_id : identity.id
+    if (chat_id != identity.id) {
+      identity.chat_id = chat_id
+    } else {
+      identity.chat_id = identity.id
+    }
 
     /*
     * get bot token if client using own bot
     * send from groups not supproted (identity.id == chat_id)
     */
-    if (botId != null && identity.id == chat_id) {
+    if (botId && identity.id == chat_id) {
 
       // only bot owner can use the bot
-      if (identity._id != botId)
+      if (identity._id != botId) {
         return false
+      }
 
       identity.bot.pipe = true
     }
@@ -164,14 +164,12 @@ router.post('/dispatch/:botId?', bodyParser(), function* (next) {
     })
 
     // store user request as session
-    const session = yield Session.store(message_id, identity, message, command.ttl)
+    const session = await Session.store(message_id, identity, message, command.ttl)
 
-    // if (identity.localization == null && command.lib == 'explore')
-      // return yield User.requestLanguage(session)
+    return await libs[command.lib](session, message)
 
-    return yield libs[command.lib](session, message)
-
-  }.bind(this)
+  }.bind(ctx)
 })
 
-module.exports = require('koa')().use(router.routes())
+const app = new Koa()
+module.exports = app.use(router.routes())

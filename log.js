@@ -3,6 +3,8 @@
 const agent = require('superagent')
 
 module.exports = function (level, message, info) {
+  // disable log
+  return false
 
   agent
     .post('http://log.savevideobot.com/store/')
