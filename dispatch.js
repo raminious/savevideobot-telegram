@@ -93,13 +93,13 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
     if (req.message != null) {
       type = 'message'
       message_id = req.update_id.toString() + req.message.message_id.toString()
-      chat_id = req.message.chat.id
+      chat_id = req.message.chat.id.toString()
       message = req.message.text
     }
     else if (req.callback_query != null) {
       type = 'callback_query'
       message_id = req.update_id.toString() + req.callback_query.message.message_id.toString()
-      chat_id = req.callback_query.message.chat.id
+      chat_id = req.callback_query.message.chat.id.toString()
       message = req.callback_query.data
     }
     else {
@@ -138,24 +138,24 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
     const identity = await User.getIdentity(user)
 
     // if message is sent from group, response back to group instead user
-    if (chat_id != identity.id) {
+    if (chat_id !== identity.telegram_id) {
       identity.chat_id = chat_id
     } else {
-      identity.chat_id = identity.id
+      identity.chat_id = identity.telegram_id
     }
 
     /*
     * get bot token if client using own bot
-    * send from groups not supproted (identity.id == chat_id)
+    * send from groups not supproted (identity.telegram_id === chat_id)
     */
-    if (botId && identity.id == chat_id) {
+    if (botId && identity.telegram_id === chat_id) {
 
       // only bot owner can use the bot
-      if (identity._id != botId) {
+      if (identity.id !== botId) {
         return false
       }
 
-      identity.bot.pipe = true
+      identity.telegram_bot.pipe = true
     }
 
     // find api depend on user request
