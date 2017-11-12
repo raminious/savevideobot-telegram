@@ -13,10 +13,11 @@ const libsPath = './lib/bot-command/'
 
 // list of libraries
 const libs = {
+  'main'          : require(libsPath + 'main'),
   'explore'       : require(libsPath + 'explore'),
   'download'      : require(libsPath + 'download'),
-  'main'          : require(libsPath + 'main'),
   'connect'       : require(libsPath + 'connect'),
+  'integration'   : require(libsPath + 'integration'),
   'ads'           : require(libsPath + 'ads')
 }
 
@@ -30,6 +31,10 @@ const commands = [
     lib: 'download',
     query: '^/[a-zA-Z0-9]{25,27}',
     ttl: config.session.ttl
+  },
+  {
+    lib: 'integration',
+    query: '^/link_[a-zA-Z0-9]{24}'
   },
   {
     lib: 'main',
@@ -82,8 +87,7 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
   /**
   * entry point of parsing user request
   */
-  const dispatch = async function (){
-
+  const dispatch = async function() {
     const req = this.request.body
     const botId = this.params.botId // is equivalent to owner user _id
 
@@ -160,14 +164,13 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
 
     // find api depend on user request
     const command = _.detect(commands, (item) => {
-      return message.match(item.query) != null
+      return message.match(item.query) !== null
     })
 
     // store user request as session
     const session = await Session.store(message_id, identity, message, command.ttl)
 
     return await libs[command.lib](session, message)
-
   }.bind(ctx)
 })
 
