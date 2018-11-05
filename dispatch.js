@@ -22,36 +22,36 @@ const libs = {
 }
 
 const commands = [
-  {
-    lib: 'explore',
-    query: /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi,
-    ttl: config.session.ttl
-  },
-  {
-    lib: 'download',
-    query: '^/[a-zA-Z0-9]{25,27}',
-    ttl: config.session.ttl
-  },
-  {
-    lib: 'integration',
-    query: '^/link_[a-zA-Z0-9]{24}'
-  },
-  {
-    lib: 'main',
-    query: '^/help$'
-  },
-  {
-    lib: 'connect',
-    query: '^/(dis)?connect$'
-  },
-  {
-    lib: 'connect',
-    query: /^\d+:[\w&.\-]*$/
-  },
-  {
-    lib: 'ads',
-    query: '^/ads$',
-  },
+  // {
+  //   lib: 'explore',
+  //   query: /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi,
+  //   ttl: config.session.ttl
+  // },
+  // {
+  //   lib: 'download',
+  //   query: '^/[a-zA-Z0-9]{25,27}',
+  //   ttl: config.session.ttl
+  // },
+  // {
+  //   lib: 'integration',
+  //   query: '^/link_[a-zA-Z0-9]{24}'
+  // },
+  // {
+  //   lib: 'main',
+  //   query: '^/help$'
+  // },
+  // {
+  //   lib: 'connect',
+  //   query: '^/(dis)?connect$'
+  // },
+  // {
+  //   lib: 'connect',
+  //   query: /^\d+:[\w&.\-]*$/
+  // },
+  // {
+  //   lib: 'ads',
+  //   query: '^/ads$',
+  // },
   {
     lib: 'main',
     query: '.*'
