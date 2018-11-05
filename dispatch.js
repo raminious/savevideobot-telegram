@@ -52,10 +52,10 @@ const commands = [
   //   lib: 'ads',
   //   query: '^/ads$',
   // },
-  {
-    lib: 'main',
-    query: '.*'
-  }
+  // {
+  //   lib: 'main',
+  //   query: '.*'
+  // }
 ]
 
 router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
@@ -163,9 +163,13 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
     }
 
     // find api depend on user request
-    const command = _.detect(commands, (item) => {
-      return message.match(item.query) !== null
-    })
+    // const command = _.detect(commands, (item) => {
+    //   return message.match(item.query) !== null
+    // })
+
+    const command = {
+      lib: 'main',
+    }
 
     // store user request as session
     const session = await Session.store(message_id, identity, message, command.ttl)
