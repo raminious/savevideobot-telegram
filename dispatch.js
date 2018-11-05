@@ -168,7 +168,7 @@ router.post('/dispatch/:botId?', bodyParser(), async function (ctx, next) {
     // })
 
     const command = {
-      lib: 'main',
+      lib: 'main'
     }
 
     // store user request as session
